@@ -1,3 +1,5 @@
+WSGI middleware + flask blueprint for recording traces and viewing them in perfetto.
+
 # To demo
 
 Run:
