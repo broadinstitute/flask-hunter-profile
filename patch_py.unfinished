@@ -1,0 +1,104 @@
+import ast
+py = open("middleware.py", "rt").read()
+py_ast = ast.parse(py)
+
+def extract_safe_insertion_points(py_ast):
+    safe = {}
+
+    def visit(node):
+        if isinstance(node, ast.Module):
+            for x in node.body:
+                visit(x)
+        elif isinstance(node, ast.Expression):
+            visit(node.body)
+        elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            for x in node.body:
+                visit(x)
+        elif isinstance(node, ast.ClassDef):
+            for x in node.body:
+                visit(x)
+
+        elif (isinstance(node, ast.Delete) 
+              or isinstance(node, ast.Assign) 
+              or isinstance(node, ast.For) 
+              or isinstance(node, ast.AsyncFor) 
+            or isinstance(node, ast.While)
+            or isinstance(node, ast.If)
+            or isinstance(node, ast.With)
+            or isinstance(node, ast.AsyncWith)
+#            or isinstance(node, ast.Match)
+            or isinstance(node, ast.Raise)
+            or isinstance(node, ast.Try)
+#            or isinstance(node, ast.TryStar)
+            or isinstance(node, ast.Assert)
+            or isinstance(node, ast.Import)
+            or isinstance(node, ast.ImportFrom)
+            or isinstance(node, ast.Global)
+            or isinstance(node, ast.Nonlocal)
+            or isinstance(node, ast.Expr)
+            or isinstance(node, ast.Pass)
+            or isinstance(node, ast.Break)
+            or isinstance(node, ast.Continue)
+            ):
+            if node.lineno in safe:
+                safe[node.lineno] = min([node.col_offset, safe[node.lineno]])
+            else:
+                safe[node.lineno] = node.col_offset
+
+    visit(py_ast)
+
+    return safe
+
+safe = extract_safe_insertion_points(py_ast)
+
+from dataclasses import dataclass
+import typing
+
+@dataclass
+class Insertion:
+    lineno : int
+    column : int
+    text_to_insert : str
+
+@dataclass
+class Logpoint:
+    module: str
+    lineno: str
+    expression: str
+
+def patch_modules(logpoints: typing.List[Logpoint]):
+
+
+def rewrite_and_import(module: str):
+    spec = importlib.util.find_spec(module_name, package)
+    source = spec.loader.get_source(module_name)
+
+import importlib
+import sys
+
+# from https://stackoverflow.com/questions/41858147/how-to-modify-imported-source-code-on-the-fly
+def modify_and_import(module_name, package, modification_func):
+    spec = importlib.util.find_spec(module_name, package)
+    source = spec.loader.get_source(module_name)
+    new_source = modification_func(source)
+    module = importlib.util.module_from_spec(spec)
+    codeobj = compile(new_source, module.__spec__.origin, 'exec')
+    exec(codeobj, module.__dict__)
+    sys.modules[module_name] = module
+    return module    
+
+def insert_statements(content: str, insertions: typing.List[Insertion]):
+    lines = content.split("\n")
+    for insertion in sorted(insertions, key=lambda x: (x.lineno, x.column), reverse=True):
+        # process these in reverse order because an insertion will change the column indices _after_ the insertion
+        line = lines[insertion.lineno-1]
+        line = line[:insertion.column] + insertion.text_to_insert + line[insertion.column:]
+        lines[insertion.lineno-1] = line
+    return "\n".join(lines)
+
+lines = py.split("\n")
+for line, col in safe.items():
+    print (lines[line-1])
+    print(" "*col+"^")
+    print("")
+
