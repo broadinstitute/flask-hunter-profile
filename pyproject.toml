@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "profiling_test"
+name = "flask-hunter-profile"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
