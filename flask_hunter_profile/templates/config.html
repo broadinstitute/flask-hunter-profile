@@ -1,0 +1,20 @@
+<html>
+    <body>
+        Hello {{ config }} 
+
+        <form method="POST">
+        <div>
+            <input name="enabled" type="checkbox" {% if config.enabled %} checked {% endif %}><label>Profiling enabled</label>
+        </div>            
+        <div>
+            <label>Profile prefix</label><input name="name" type="text" value="{{config.name}}">
+        </div>
+        <div>
+            <label>Profile url pattern</label><input name="url_pattern" type="text" value="{{config.url_pattern}}">
+        </div>
+        <div>
+            <input type="submit">
+        </div>
+        </form>
+    </body>
+</html>
