@@ -9,7 +9,7 @@ readme = "README.md"
 python = ">3.6"
 python-hunter = "^0.0"
 flask = ">1.0.0"
-
+flask-wtf = ">0.0"
 
 [build-system]
 requires = ["poetry-core"]
