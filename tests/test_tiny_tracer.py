@@ -9,7 +9,7 @@ def test_basic_trace():
     def log_function(event):
         event_counts[f"{event.kind} {event.function}"] += 1
 
-    with trace(action=log_function, trace_module_patterns=["tests\\.*"]):
+    with trace(action=log_function, trace_module_patterns=["tests\\..*"]):
         call_b(100)
 
     assert event_counts["call call_a"] == 2
