@@ -4,11 +4,16 @@ import os
 from flask_hunter_profile.middleware import ProfilingMiddleware
 from flask_hunter_profile.service import Config
 from flask_hunter_profile.flask_blueprint import flask_hunter_profile
+from flask_wtf.csrf import CSRFProtect
 
 COOKIE_NAME = 'hunter-profile'
 log_dir = "logs"
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)
+
+app.config["SECRET_KEY"] = "not really"
 
 @app.route("/")
 def hello_world():

@@ -14,6 +14,7 @@ import time
 from hunter.actions import Action
 from hunter.actions import RETURN_VALUE
 from .service import profiler_context, Config
+from . import tiny_tracer
 
 log = logging.getLogger(__name__) ; test_value = "test"
 
@@ -54,7 +55,8 @@ class TraceSettings:
     name: str
     enabled: bool
     url_pattern: str
-    watches : typing.List[TraceWatch]
+    trace_module_patterns : typing.List[str]
+    watches : typing.List[TraceWatch] = None
 #    modules: typing.List[str]
 
 
@@ -199,8 +201,7 @@ class ProfilingMiddleware:
             start = time.perf_counter()
             try:
                 with profiler_context(self):
-                    condition = hunter.Q(stdlib=False) & ( hunter.Q(kind_in=["return", "call"]) )
-                    with hunter.trace( condition, action=action) as t:
+                    with tiny_tracer.trace( action=action,                                                   trace_module_patterns=trace_settings.trace_module_patterns,) as t:
                         result = self.app(environ, start_response)
             finally:
                 end = time.perf_counter()
@@ -208,7 +209,7 @@ class ProfilingMiddleware:
             return result
 
 class ProfileAction(Action):
-    def __init__(self, trace_name, trace_event_queue, watches: typing.List[TraceWatch]):
+    def __init__(self, trace_name, trace_event_queue, watches: typing.Optional[typing.List[TraceWatch]]):
         self.timings = {}
         self.start = time.perf_counter()
         self.pid = os.getpid()
@@ -217,8 +218,9 @@ class ProfileAction(Action):
         self.trace_name = trace_name
 
         self.watches_by_function = {}
-        for watch in watches:
-            self.watches_by_function[watch.function] = watch.parameters
+        if watches:
+            for watch in watches:
+                self.watches_by_function[watch.function] = watch.parameters
  
     def emit_metadata(self, trace_id, description):
         je = {

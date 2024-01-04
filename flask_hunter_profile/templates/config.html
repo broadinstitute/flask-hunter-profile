@@ -16,14 +16,19 @@
         </div>
         <div>
             <label for="trace_module_patterns">Modules to trace</label>
-            <textarea name="trace_module_patterns" cols="40" rows="10">
-                {{ config.trace_module_patterns|join("\n") }}
-            </textarea>
+            <textarea name="trace_module_patterns" cols="40" rows="10">{{ config.trace_module_patterns|join("\n") }}</textarea>
         </div>
         <div>
             <input type="submit">
         </div>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         </form>
+
+        <p>
+            Raw config:
+        </p>
+        <pre>
+            {{config}}
+        </pre>
     </body>
 </html>

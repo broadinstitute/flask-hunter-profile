@@ -4,7 +4,7 @@ import json
 from . import service
 
 flask_hunter_profile = Blueprint('flask_hunter_profile', __name__,
-                        template_folder='templates', url_prefix="profiler")
+                        template_folder='templates', url_prefix="/profiler")
 
 @flask_hunter_profile.route("/profiles")
 def list_profiles():
@@ -26,7 +26,7 @@ def config():
     if request.method == "POST":
         trace_module_patterns = request.form["trace_module_patterns"].split("\n")
         trace_module_patterns = [x.strip() for x in trace_module_patterns]
-        trace_module_patterns = [x for x in trace_module_patterns if len(trace_module_patterns) > 0]
+        trace_module_patterns = [x for x in trace_module_patterns if len(x) > 0]
 
         cookie_value = json.dumps({"enabled": "enabled" in request.form, 
                                    "name": request.form["name"], 

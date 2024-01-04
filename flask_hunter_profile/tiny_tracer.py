@@ -86,7 +86,7 @@ class Handler():
     def __init__(self, trace_module_patterns=[], skip_action_modules=[], action=lambda event: None):
         self.trace_option_by_module = {}
         self.skip_action_modules = set(skip_action_modules)
-        self.trace_module_patterns=[re.compile(x) for x in trace_module_patterns]
+        self.trace_module_patterns=[re.compile(f"^{x}$") for x in trace_module_patterns]
         self.action = action
         self.seen_modules = set()
 
@@ -110,12 +110,16 @@ class Handler():
             # because otherwise we can't see what the child modules are we might want
             # to add in the future. Do this by adding the module of the first time we get called.
             if len(self.trace_option_by_module) == 0:
+                #print("Adding first module", module)
                 trace_option = TRACE_CHILD
             else:
                 for trace_module_pattern in self.trace_module_patterns:
                     if trace_module_pattern.match(module):
                         trace_option = TRACE_CHILD
+                        #print("caller module passed check", module, trace_module_pattern)
                         break
+                #if trace_option == NO_TRACE:
+                #    print("caller module did not pass check", module, self.trace_module_patterns)
 
             # store conclusion into cache
             self.trace_option_by_module[module] = trace_option
