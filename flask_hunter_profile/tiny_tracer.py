@@ -1,6 +1,6 @@
 import hunter
 import hunter.tracer
-from hunter import Event
+from hunter.event import Event
 import traceback
 import re
 from typing import Callable
