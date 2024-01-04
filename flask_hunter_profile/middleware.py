@@ -237,25 +237,29 @@ class ProfileAction(Action):
         frame_id = id(event.frame)
 
         if event.kind == 'call':
-            # see about adding any of the parameters to the log
-            variables = self.watches_by_function.get(event.function)
             variables_to_add = {}
-            if variables:
-                for variable in variables:
-                    if variable in event.locals:
-                        value = repr(event.locals[variable])
-                        if len(value) > 512:
-                            value = value[:512]+"..."
-                    else:
-                        value = "MISSING"
-                    variables_to_add[variable] = value
+            event.frame.f_trace_lines = False
+
+            # see about adding any of the parameters to the log
+            # variables = self.watches_by_function.get(event.function)
+            # if variables:
+            #     for variable in variables:
+            #         if variable in event.locals:
+            #             value = repr(event.locals[variable])
+            #             if len(value) > 512:
+            #                 value = value[:512]+"..."
+            #         else:
+            #             value = "MISSING"
+            #         variables_to_add[variable] = value
 
             self.timings[frame_id] = current_time, variables_to_add
         elif frame_id in self.timings:
             if event.kind == 'return':
                 start_time, variables_to_add = self.timings.pop(frame_id)
                 delta = current_time - start_time
-                args = {"module": event.module, "lineno": event.lineno, "filename": event.filename}
+                args = {"module": event.module, 
+                        "lineno": event.lineno, 
+                        "filename": event.filename}
                 args.update(variables_to_add)
                 je = {
                     "name": event.function,

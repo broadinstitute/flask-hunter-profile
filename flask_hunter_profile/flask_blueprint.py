@@ -4,7 +4,7 @@ import json
 from . import service
 
 flask_hunter_profile = Blueprint('flask_hunter_profile', __name__,
-                        template_folder='templates')
+                        template_folder='templates', url_prefix="profiler")
 
 @flask_hunter_profile.route("/profiles")
 def list_profiles():
@@ -24,17 +24,23 @@ def config():
     config = service.get_current_profiler_config()
 
     if request.method == "POST":
+        trace_module_patterns = request.form["trace_module_patterns"].split("\n")
+        trace_module_patterns = [x.strip() for x in trace_module_patterns]
+        trace_module_patterns = [x for x in trace_module_patterns if len(trace_module_patterns) > 0]
+
         cookie_value = json.dumps({"enabled": "enabled" in request.form, 
                                    "name": request.form["name"], 
                                    "url_pattern": request.form["url_pattern"],
-                                     "watches": []})
+                                    #  "watches": [],
+                                    "trace_module_patterns": trace_module_patterns
+                                     })
         response = make_response(redirect(url_for("flask_hunter_profile.config")))
         response.set_cookie(config.cookie_name, cookie_value)
         return response        
     else:
         cookie_value = request.cookies.get(config.cookie_name)
         if cookie_value is None:
-            cookie_dict = {"enabled": False, "name": "profile", "url_pattern": ".*", "watches": []}
+            cookie_dict = {"enabled": False, "name": "profile", "url_pattern": ".*"}
         else:
             cookie_dict = json.loads(cookie_value)
         return render_template("config.html", config=cookie_dict)

@@ -1,16 +1,24 @@
 <html>
     <body>
-        Hello {{ config }} 
+        <p>
+        Configure options for tracing here:
+        </p>
 
         <form method="POST">
         <div>
             <input name="enabled" type="checkbox" {% if config.enabled %} checked {% endif %}><label>Profiling enabled</label>
         </div>            
         <div>
-            <label>Profile prefix</label><input name="name" type="text" value="{{config.name}}">
+            <label for="name">Profile prefix</label><input name="name" type="text" value="{{config.name}}">
         </div>
         <div>
-            <label>Profile url pattern</label><input name="url_pattern" type="text" value="{{config.url_pattern}}">
+            <label for="url_pattern">Profile url pattern</label><input name="url_pattern" type="text" value="{{config.url_pattern}}">
+        </div>
+        <div>
+            <label for="trace_module_patterns">Modules to trace</label>
+            <textarea name="trace_module_patterns" cols="40" rows="10">
+                {{ config.trace_module_patterns|join("\n") }}
+            </textarea>
         </div>
         <div>
             <input type="submit">
