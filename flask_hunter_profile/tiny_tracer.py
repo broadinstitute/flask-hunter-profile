@@ -6,14 +6,18 @@ import re
 from typing import Callable
 import traceback
 
+
 class ContinueTraceOption:
     def __init__(self, name):
         self.name = name
+
     def __repr__(self) -> str:
         return self.name
 
+
 TRACE_CHILD = ContinueTraceOption("TRACE_CHILD")
 NO_TRACE = ContinueTraceOption("NO_TRACE")
+
 
 class Tracer(hunter.tracer.Tracer):
     # need to override the __call__ method on tracer in order to change behavior of handler.
@@ -29,7 +33,9 @@ class Tracer(hunter.tracer.Tracer):
                 option = self._handler(event)
             except Exception as exc:
                 traceback.print_exc(file=hunter._default_stream)
-                hunter._default_stream.write(f'Disabling tracer because handler {self._handler!r} failed ({exc!r}) at {event!r}.\n\n')
+                hunter._default_stream.write(
+                    f"Disabling tracer because handler {self._handler!r} failed ({exc!r}) at {event!r}.\n\n"
+                )
                 self.stop()
                 return None
 
@@ -39,17 +45,24 @@ class Tracer(hunter.tracer.Tracer):
                 return None
 
 
-class Handler():
-    def __init__(self, trace_module_patterns=[], skip_action_modules=[], action=lambda event: None):
+class Handler:
+    def __init__(
+        self,
+        trace_module_patterns=[],
+        skip_action_modules=[],
+        action=lambda event: None,
+    ):
         self.trace_option_by_module = {}
         self.skip_action_modules = set(skip_action_modules)
-        self.trace_module_patterns=[re.compile(f"^{x}$") for x in trace_module_patterns]
+        self.trace_module_patterns = [
+            re.compile(f"^{x}$") for x in trace_module_patterns
+        ]
         self.action = action
         self.seen_modules = set()
 
-    def __call__(self, event: hunter.Event): 
+    def __call__(self, event: hunter.Event):
         # check the caller's module to decide whether we want to trace into function
-        module = event.frame.f_back.f_globals.get('__name__', '?')
+        module = event.frame.f_back.f_globals.get("__name__", "?")
 
         self.seen_modules.add(module)
 
@@ -60,19 +73,19 @@ class Handler():
         if trace_option is None:
             trace_option = NO_TRACE
 
-            # a bit of a hack: Ensure that we always trace at least the top level 
+            # a bit of a hack: Ensure that we always trace at least the top level
             # because otherwise we can't see what the child modules are we might want
             # to add in the future. Do this by adding the module of the first time we get called.
             if len(self.trace_option_by_module) == 0:
-                #print("Adding first module", module)
+                # print("Adding first module", module)
                 trace_option = TRACE_CHILD
             else:
                 for trace_module_pattern in self.trace_module_patterns:
                     if trace_module_pattern.match(module):
                         trace_option = TRACE_CHILD
-                        #print("caller module passed check", module, trace_module_pattern)
+                        # print("caller module passed check", module, trace_module_pattern)
                         break
-                #if trace_option == NO_TRACE:
+                # if trace_option == NO_TRACE:
                 #    print("caller module did not pass check", module, self.trace_module_patterns)
 
             # store conclusion into cache
@@ -83,6 +96,7 @@ class Handler():
 
         # print("returning", trace_option)
         return trace_option
+
 
 def trace(**options):
     handler: Callable[[hunter.Event], ContinueTraceOption] = Handler(**options)

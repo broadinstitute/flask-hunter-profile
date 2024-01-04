@@ -3,8 +3,9 @@ from collections import defaultdict
 
 from .sample_functions import call_c, call_a, call_b
 
+
 def test_basic_trace():
-    event_counts = defaultdict(lambda : 0)
+    event_counts = defaultdict(lambda: 0)
 
     def log_function(event):
         event_counts[f"{event.kind} {event.function}"] += 1
@@ -19,7 +20,7 @@ def test_basic_trace():
 
 
 def test_execution_trace():
-    event_counts = defaultdict(lambda : 0)
+    event_counts = defaultdict(lambda: 0)
 
     def log_function(event):
         event_counts[f"{event.kind} {event.function}"] += 1
@@ -46,8 +47,9 @@ def test_execution_trace():
     assert event_counts["call throws_ex"] == 1
     assert event_counts["return throws_ex"] == 1
 
+
 def test_filtered_trace():
-    event_counts = defaultdict(lambda : 0)
+    event_counts = defaultdict(lambda: 0)
 
     def log_function(event):
         event_counts[f"{event.kind} {event.function}"] += 1
@@ -57,7 +59,6 @@ def test_filtered_trace():
 
     with trace(action=log_function, trace_module_patterns=["tests\\.test_.*"]):
         top_fn()
-
 
     assert event_counts["call top_fn"] == 1
     assert event_counts["return top_fn"] == 1

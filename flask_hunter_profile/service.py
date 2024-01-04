@@ -2,15 +2,19 @@ import os
 from dataclasses import dataclass
 import json
 
+
 @dataclass
-class Config: 
+class Config:
     trace_log_dir: str
     cookie_name: str
 
+
 from contextvars import ContextVar
-context_stack = ContextVar('context_stack')
+
+context_stack = ContextVar("context_stack")
 
 import contextlib
+
 
 def _push_context(obj):
     stack = context_stack.get(None)
@@ -19,10 +23,12 @@ def _push_context(obj):
         context_stack.set(stack)
     stack.append(obj)
 
+
 def _pop_context():
     stack = context_stack.get(None)
-    assert stack  is not None and len(stack ) > 0
+    assert stack is not None and len(stack) > 0
     return stack.pop()
+
 
 @contextlib.contextmanager
 def profiler_context(middleware):
@@ -33,10 +39,12 @@ def profiler_context(middleware):
         popped = _pop_context()
         assert popped == middleware
 
+
 def get_current_profiler_config():
     stack = context_stack.get()
     assert stack is not None and len(stack) > 0
     return stack[-1].config
+
 
 @dataclass
 class ProfileFile:
@@ -44,19 +52,21 @@ class ProfileFile:
     description: str
     mtime: int
 
+
 def _read_trace_description(filename):
     config = get_current_profiler_config()
     assert filename.startswith(config.trace_log_dir)
     metadata_filename = f"{filename}.metadata"
 
     if not os.path.exists(metadata_filename):
-        # since the metadata is written after the trace ends, 
+        # since the metadata is written after the trace ends,
         # some of these won't have metadata yet. Return None for these
         return None
-    
+
     with open(metadata_filename, "rt") as fd:
-       metadata = json.load(fd)
-    return metadata['description']
+        metadata = json.load(fd)
+    return metadata["description"]
+
 
 def list_traces():
     config = get_current_profiler_config()
@@ -74,4 +84,3 @@ def list_traces():
             files.append(ProfileFile(filename, description, os.path.getmtime(path)))
 
     return sorted(files, key=lambda x: x.mtime, reverse=True)
-
