@@ -62,7 +62,11 @@ class Handler:
 
     def __call__(self, event: hunter.Event):
         # check the caller's module to decide whether we want to trace into function
-        module = event.frame.f_back.f_globals.get("__name__", "?")
+        f_back = event.frame.f_back
+        if f_back:
+            module = f_back.f_globals.get("__name__", "?")
+        else:
+            module = "?"
 
         self.seen_modules.add(module)
 
